@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#246b55">
+<title>편의점 영양 탐험대</title>
+<style>
+:root{--green:#246b55;--mint:#e9f5ef;--ink:#18251f;--muted:#66756e;--line:#dce7e0;--bg:#f6f8f6;--orange:#f0a34a;--red:#b74d42}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+header{background:linear-gradient(120deg,#1e5c49,#36866b);color:white;padding:28px 18px 24px}
+.wrap{max-width:1100px;margin:auto;padding:0 16px}
+h1{font-size:clamp(25px,5vw,38px);margin:0 0 8px}header p{margin:0;color:#e6f4ed;line-height:1.6}
+nav{display:flex;gap:8px;overflow:auto;padding:14px 0;position:sticky;top:0;background:var(--bg);z-index:5}
+nav button,.btn{border:0;border-radius:999px;padding:10px 15px;font-weight:700;cursor:pointer;background:#e6eee9;color:var(--green);white-space:nowrap}
+nav button.active,.btn.primary{background:var(--green);color:white}
+section{display:none;padding:10px 0 36px}section.active{display:block}
+h2{font-size:24px;margin:12px 0 6px}.sub{color:var(--muted);line-height:1.6;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:13px}
+.card{background:white;border:1px solid var(--line);border-radius:17px;padding:13px;box-shadow:0 3px 12px #163b2410}
+.photo{height:125px;border-radius:12px;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden;margin-bottom:10px}
+.photo img{width:100%;height:100%;object-fit:contain;background:white}
+.pill{display:inline-block;background:var(--mint);color:var(--green);border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;margin:0 4px 6px 0}
+.small{font-size:12px;color:var(--muted);line-height:1.55}
+.card h3{font-size:15px;margin:4px 0 7px;line-height:1.4}.price{font-weight:800;color:var(--green)}
+input,select{font:inherit;border:1px solid #cddbd2;border-radius:9px;padding:9px;background:white;max-width:100%;width:100%}
+label{display:block;font-size:12px;font-weight:700;color:#52645a;margin:9px 0 4px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.card button{margin-top:10px}.btn{padding:9px 13px}.btn:disabled{opacity:.45;cursor:not-allowed}
+.mission{display:grid;grid-template-columns:60px 1fr;gap:12px;align-items:start}
+.mission .num{width:54px;height:54px;border-radius:16px;background:var(--mint);display:grid;place-items:center;color:var(--green);font-size:22px;font-weight:900}
+.mission h3{margin:0 0 5px}.mission p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.mission-card{background:white;border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:12px}
+.status{font-size:12px;font-weight:800;color:var(--green);margin-top:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:white;border:1px solid var(--line);border-radius:17px;padding:17px;margin:12px 0}
+.cartline{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.notice{background:#fff6e8;border:1px solid #f2dfbf;border-radius:12px;padding:12px;color:#72512b;font-size:12px;line-height:1.6}
+progress{width:100%;height:12px;accent-color:var(--green)}
+footer{padding:25px 0 40px;color:var(--muted);font-size:12px;line-height:1.7}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:10px}.photo{height:105px}.fields{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>🛒 편의점 영양 탐험대</h1>
+<p>30개 상품을 살펴보고, 영양표시를 직접 읽어 6개의 미션을 해결해 보세요.<br>정답은 ‘적게 먹기’가 아니라 근거를 보고 균형 있게 선택하는 능력입니다.</p>
+</div></header>
+<div class="wrap">
+<nav id="nav">
+<button class="active" data-tab="missions">🗺️ 미션 지도</button>
+<button data-tab="store">🏪 편의점</button>
+<button data-tab="cart">🧺 장바구니</button>
+<button data-tab="record">📊 기록·결과</button>
+</nav>
+<section id="missions" class="active">
+<h2>미션 지도</h2><p class="sub">각 미션을 열어 조건을 확인하고, 상품을 선택해 도전하세요. 상품 영양정보가 비어 있으면 포장지의 실제 표시를 입력해야 판정할 수 있어요.</p>
+<div id="missionList"></div>
+<div class="notice">교육용 활동입니다. 아래 수치는 보편적인 의학적 제한이나 개인별 처방이 아닙니다. 당류·나트륨을 무조건 최소화하는 게임이 아니라, 실제 표시를 읽고 비교하는 연습을 합니다.</div>
+</section>
+<section id="store">
+<h2>상품 진열대 <span class="small">30개</span></h2><p class="sub">상품 카드를 눌러 상세정보를 입력하세요. 현재 상품명은 편의점에서 볼 수 있는 상품 유형 및 일부 GS25 공개 상품 예시를 바탕으로 한 시작 목록입니다. 판매 여부·가격은 점포마다 다를 수 있습니다.</p>
+<div class="row" style="margin-bottom:12px">
+<select id="filter"><option value="전체">전체 카테고리</option><option>간편식</option><option>단백질</option><option>과일·채소</option><option>간식</option><option>음료</option></select>
+<input id="search" placeholder="상품명 검색">
+</div>
+<div class="grid" id="products"></div>
+</section>
+<section id="cart">
+<h2>장바구니</h2><p class="sub">상품을 담고 예산과 식품군 구성을 확인하세요.</p>
+<div class="panel"><label>미션 예산 (원)</label><input id="budget" type="number" value="10000" min="0"><div id="cartItems"></div><div class="row" style="justify-content:space-between;margin-top:12px"><b>합계</b><strong id="total">0원</strong></div><progress id="budgetBar" value="0" max="10000"></progress><p class="small" id="budgetText"></p><button class="btn primary" id="clearCart">장바구니 비우기</button></div>
+</section>
+<section id="record">
+<h2>도전 기록</h2><p class="sub">미션 통과 수와 활동 기록을 확인하세요.</p>
+<div class="panel"><div class="row" style="justify-content:space-between"><b>완료 미션</b><strong id="completed">0 / 6</strong></div><progress id="missionBar" value="0" max="6"></progress><h2 id="score">0점</h2><p class="small">미션별 조건 충족 여부를 바탕으로 점수를 계산합니다.</p></div>
+<div class="panel"><h3>내 상품 영양정보 입력 현황</h3><p class="small" id="dataCount"></p><button class="btn" id="export">기록 JSON 내려받기</button> <button class="btn" id="reset">전체 초기화</button></div>
+</section>
+</div>
+<div class="wrap"><footer>
+**사진과 영양정보 입력 안내**: 상품 사진은 직접 촬영한 포장 사진을 업로드해 사용하세요. 이 웹앱은 사진과 입력값을 이 브라우저 안에 저장하며, 외부 서버로 전송하지 않습니다. 공식 판매 페이지의 사진은 저작권·이용 조건을 확인하지 않고 복사해 배포하지 마세요.<br>
+상품 예시 확인: <a href="https://gs25.gsretail.com/gscvs/ko/main?uiel=Mobile" target="_blank" rel="noopener">GS25 공식 홈페이지</a>. 영양정보는 반드시 해당 상품의 실제 포장지 표시를 기준으로 입력하세요. 상품 구성과 가격은 점포·시기에 따라 달라집니다.
+</footer></div>
+<dialog id="detail" style="border:0;border-radius:18px;width:min(560px,94vw);padding:20px;max-height:90vh;overflow:auto">
+<form method="dialog"><button class="btn" style="float:right">닫기 ✕</button></form>
+<div id="detailBody"></div>
+</dialog>
+<script>
+const initial=[
+["간편식","참치마요 삼각김밥","🍙",1500,"GS25/CU 공통 상품 유형"],
+["간편식","전주비빔 삼각김밥","🍙",1500,"상품 유형 예시"],
+["간편식","참치 샌드위치","🥪",2800,"상품 유형 예시"],
+["간편식","닭가슴살 도시락","🍱",5200,"상품 유형 예시"],
+["간편식","치킨마요 덮밥","🍱",4800,"상품 유형 예시"],
+["간편식","고단백 저당 베이글(크랜베리호두)","🥯",2800,"GS25 공개 상품 예시"],
+["단백질","구운란 2입","🥚",1800,"상품 유형 예시"],
+["단백질","플레인 그릭요거트","🥣",2500,"상품 유형 예시"],
+["단백질","저지방 흰우유","🥛",1500,"상품 유형 예시"],
+["단백질","스트링 치즈","🧀",1200,"상품 유형 예시"],
+["단백질","두부 스낵·두부 제품","◻️",2200,"상품 유형 예시"],
+["단백질","CJ 소바바치킨 소이허니 순살 240g","🍗",9900,"GS25 공개 상품 예시"],
+["과일·채소","컵과일","🍓",3500,"상품 유형 예시"],
+["과일·채소","바나나","🍌",1800,"상품 유형 예시"],
+["과일·채소","미니 당근·방울토마토","🥕",2500,"상품 유형 예시"],
+["과일·채소","그린 샐러드","🥗",3500,"상품 유형 예시"],
+["과일·채소","사과","🍎",2000,"상품 유형 예시"],
+["과일·채소","고구마","🍠",2500,"상품 유형 예시"],
+["간식","구운 아몬드 소포장","🥜",1800,"상품 유형 예시"],
+["간식","플레인 요거트","🥣",1500,"상품 유형 예시"],
+["간식","치즈 스틱","🧀",1500,"상품 유형 예시"],
+["간식","라라스윗 저당 딸기 요거트바 70mL","🍓",2500,"GS25 공개 상품 예시"],
+["간식","라벨리 인절미 빙수 220mL","🍨",3500,"GS25 공개 상품 예시"],
+["간식","우베크림 소금빵","🥐",3600,"GS25 공개 상품 예시"],
+["음료","생수","💧",1000,"상품 유형 예시"],
+["음료","무가당 보리차","🫖",1500,"상품 유형 예시"],
+["음료","코카콜라 암바사 제로 500mL","🥤",2200,"GS25 공개 상품 예시"],
+["음료","춘식이 미숫가루","🥛",1850,"GS25 공개 상품 예시"],
+["음료","춘식이 말차우유","🍵",1850,"GS25 공개 상품 예시"],
+["음료","서울 강릉커피 아인슈페너 250mL","☕",2800,"GS25 공개 상품 예시"]
+].map((p,i)=>({id:i,cat:p[0],name:p[1],emoji:p[2],price:p[3],source:p[4],photo:"",sugar:"",sodium:"",protein:"",fiber:"",serving:"",group:"",brand:"",notes:""}));
+let products=JSON.parse(localStorage.getItem("ce_products")||"null")||initial;
+let cart=JSON.parse(localStorage.getItem("ce_cart")||"{}");
+let done=JSON.parse(localStorage.getItem("ce_done")||"{}");
+const missions=[
+{title:"등교 전 아침 조합",icon:"🌅",desc:"주식 역할 식품 1개와 단백질 식품 1개를 골라 아침 조합을 완성하세요.",rule:"장바구니에 간편식 1개 이상 + 단백질 카테고리 1개 이상. 선택한 두 상품의 영양정보를 확인하세요.",test:()=>has("간편식")&&has("단백질")},
+{title:"오후 수업을 위한 점심 설계",icon:"📚",desc:"점심으로 먹을 조합을 구성하고 식품군을 다양하게 선택하세요.",rule:"간편식 1개 이상 + 단백질 1개 이상 + 과일·채소 1개 이상. 세 카테고리 모두 장바구니에 있어야 통과.",test:()=>has("간편식")&&has("단백질")&&has("과일·채소")},
+{title:"당류 탐정단",icon:"🔎",desc:"음료 3개의 포장 전체 당류를 입력하고 수치를 비교하세요.",rule:"음료 3개 이상을 장바구니에 담고, 각 상품의 당류(g)와 총 내용량/제공량을 입력하세요. 값이 확인된 음료끼리 비교하면 통과합니다. 특정 당류 제한량은 적용하지 않습니다.",test:()=>{let a=selected().filter(p=>p.cat==="음료");return a.length>=3&&a.every(p=>valid(p.sugar))&&a.every(p=>p.serving.trim())}},
+{title:"나트륨 비교 실험실",icon:"🧂",desc:"서로 다른 간편식 3개의 나트륨 표시를 읽고 비교하세요.",rule:"간편식 3개 이상을 장바구니에 담고 각 상품의 나트륨(mg)과 기준량을 입력하세요. 같은 기준량인지 확인하세요.",test:()=>{let a=selected().filter(p=>p.cat==="간편식");return a.length>=3&&a.every(p=>valid(p.sodium))&&a.every(p=>p.serving.trim())}},
+{title:"간식 페어링 챌린지",icon:"🍎",desc:"간식과 과일·채소 또는 단백질 식품을 함께 골라 간식 구성을 만드세요.",rule:"간식 1개 이상 + 과일·채소 또는 단백질 1개 이상. 선택 이유를 상품 영양표시를 근거로 설명하세요.",test:()=>has("간식")&&(has("과일·채소")||has("단백질"))},
+{title:"예산 안에서 하루 장보기",icon:"🏆",desc:"여러 식품군을 담아 예산 안에서 균형 잡힌 장바구니를 완성하세요.",rule:"간편식·단백질·과일·채소·음료 중 4개 카테고리 이상을 담고 예산을 넘지 않으면 통과.",test:()=>new Set(selected().map(p=>p.cat)).size>=4&&total()<=budget()}
+];
+function save(){localStorage.setItem("ce_products",JSON.stringify(products));localStorage.setItem("ce_cart",JSON.stringify(cart));localStorage.setItem("ce_done",JSON.stringify(done));}
+function valid(v){return v!==""&&Number.isFinite(Number(v))&&Number(v)>=0}
+function selected(){return products.filter(p=>Number(cart[p.id]||0)>0)}
+function has(cat){return selected().some(p=>p.cat===cat)}
+function total(){return products.reduce((s,p)=>s+p.price*(cart[p.id]||0),0)}
+function budget(){return Number(document.getElementById("budget")?.value||10000)}
+function renderMissions(){document.getElementById("missionList").innerHTML=missions.map((m,i)=>`<div class="mission-card"><div class="mission"><div class="num">${m.icon}</div><div><h3>${i+1}. ${m.title}</h3><p>${m.desc}</p><p style="margin-top:7px"><b>통과 조건</b> · ${m.rule}</p><div class="status">${done[i]?"✅ 완료 기록됨":"미션 진행 중"}</div><button class="btn" onclick="goStore()">상품 고르러 가기</button><button class="btn primary" onclick="checkMission(${i})">조건 확인</button></div></div></div>`).join("")}
+function renderStore(){let f=document.getElementById("filter").value,s=document.getElementById("search").value.toLowerCase();document.getElementById("products").innerHTML=products.filter(p=>(f==="전체"||p.cat===f)&&p.name.toLowerCase().includes(s)).map(p=>`<article class="card"><div class="photo">${p.photo?`<img src="${p.photo}" alt="${p.name}">`:p.emoji}</div><span class="pill">${p.cat}</span><h3>${p.name}</h3><div class="price">${p.price.toLocaleString()}원 <span class="small">예시 가격</span></div><div class="small">${p.source}</div><button class="btn primary" onclick="openDetail(${p.id})">상품 정보 / 사진 입력</button><button class="btn" onclick="add(${p.id})">장바구니 담기 ${cart[p.id]?`(${cart[p.id]})`:""}</button></article>`).join("")}
+function openDetail(id){let p=products.find(x=>x.id===id);document.getElementById("detailBody").innerHTML=`<h2>${p.emoji} ${p.name}</h2><p class="small">${p.source} · 가격은 예시이며 직접 수정할 수 있습니다.</p><label>상품 사진 업로드 (포장지 직접 촬영 권장)</label><input type="file" accept="image/*" id="photoInput"><div class="fields"><div><label>가격 (원)</label><input id="dprice" type="number" value="${p.price}"></div><div><label>1회 제공량/총 내용량</label><input id="dserv" value="${p.serving}" placeholder="예: 1개 100g"></div><div><label>당류 (g)</label><input id="dsugar" type="number" min="0" step=".1" value="${p.sugar}"></div><div><label>나트륨 (mg)</label><input id="dsodium" type="number" min="0" step="1" value="${p.sodium}"></div><div><label>단백질 (g)</label><input id="dprotein" type="number" min="0" step=".1" value="${p.protein}"></div><div><label>식이섬유 (g)</label><input id="dfiber" type="number" min="0" step=".1" value="${p.fiber}"></div></div><label>식품군 / 특징 메모</label><input id="dgroup" value="${p.group}" placeholder="예: 곡류, 유제품, 채소 포함 여부 등"><label>상품 설명 또는 출처 메모</label><input id="dnotes" value="${p.notes}"><p class="notice">영양정보는 포장지의 실제 표시를 그대로 입력하세요. ‘100g당’ 수치와 ‘제품 전체’ 수치를 섞어 비교하지 않도록 기준량도 함께 적어주세요.</p><button class="btn primary" onclick="saveDetail(${id})">저장하기</button> <button class="btn" onclick="add(${id})">장바구니 담기</button>`;
+document.getElementById("photoInput").addEventListener("change",e=>{let file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=()=>{let img=new Image();img.onload=()=>{let scale=Math.min(1,600/Math.max(img.width,img.height));let c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);products.find(x=>x.id===id).photo=c.toDataURL("image/jpeg",.72);save();};img.src=reader.result;};reader.readAsDataURL(file);});document.getElementById("detail").showModal()}
+function saveDetail(id){let p=products.find(x=>x.id===id);p.price=Number(document.getElementById("dprice").value)||0;p.serving=document.getElementById("dserv").value;p.sugar=document.getElementById("dsugar").value;p.sodium=document.getElementById("dsodium").value;p.protein=document.getElementById("dprotein").value;p.fiber=document.getElementById("dfiber").value;p.group=document.getElementById("dgroup").value;p.notes=document.getElementById("dnotes").value;save();document.getElementById("detail").close();renderAll()}
+function add(id){cart[id]=(cart[id]||0)+1;save();renderAll()}
+function changeQty(id,d){cart[id]=Math.max(0,(cart[id]||0)+d);if(!cart[id])delete cart[id];save();renderAll()}
+function renderCart(){let el=document.getElementById("cartItems");let a=selected();el.innerHTML=a.length?a.map(p=>`<div class="cartline"><div><b>${p.name}</b><div class="small">${p.price.toLocaleString()}원 × ${cart[p.id]}</div></div><div class="row"><button class="btn" onclick="changeQty(${p.id},-1)">−</button><b>${cart[p.id]}</b><button class="btn" onclick="changeQty(${p.id},1)">+</button></div></div>`).join(""):`<p class="small">장바구니가 비어 있어요. 편의점에서 상품을 골라보세요.</p>`;document.getElementById("total").textContent=total().toLocaleString()+"원";let b=budget();document.getElementById("budgetBar").max=Math.max(b,1);document.getElementById("budgetBar").value=Math.min(total(),b);document.getElementById("budgetText").textContent=total()>b?"예산을 초과했어요. 상품 구성을 다시 조정해 보세요.":`예산까지 ${(b-total()).toLocaleString()}원 남았어요.`}
+function checkMission(i){let ok=missions[i].test();if(ok){done[i]=true;save();alert("미션 조건을 충족했어요! 도전 기록에 반영했어요.");}else{alert("아직 통과 조건을 모두 충족하지 못했어요. 상품 구성과 영양정보 입력 기준을 다시 확인해 보세요.");}renderAll()}
+function renderRecord(){let n=Object.values(done).filter(Boolean).length;document.getElementById("completed").textContent=n+" / 6";document.getElementById("missionBar").value=n;document.getElementById("score").textContent=(n*100/6|0)+"점";let c=products.filter(p=>[p.sugar,p.sodium,p.protein,p.fiber].some(valid)).length;document.getElementById("dataCount").textContent=`30개 중 ${c}개 상품에 영양정보가 입력되어 있어요. 실제 포장지 정보를 입력할수록 미션 판정이 정확해집니다.`}
+function renderAll(){renderMissions();renderStore();renderCart();renderRecord()}
+function goStore(){document.querySelector('[data-tab="store"]').click()}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll("section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active")}));
+document.getElementById("filter").addEventListener("change",renderStore);document.getElementById("search").addEventListener("input",renderStore);document.getElementById("budget").addEventListener("input",renderCart);
+document.getElementById("clearCart").addEventListener("click",()=>{cart={};save();renderAll()});
+document.getElementById("reset").addEventListener("click",()=>{if(confirm("상품 입력, 장바구니, 미션 기록을 모두 초기화할까요?")){localStorage.clear();location.reload()}});
+document.getElementById("export").addEventListener("click",()=>{let blob=new Blob([JSON.stringify({products,cart,done},null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="편의점영양탐험대_기록.json";a.click();URL.revokeObjectURL(a.href)});
+renderAll();
+</script>
+</body></html>
